@@ -75,7 +75,7 @@ class Main():
                     elif self.button_three.collidepoint(mouse_pos):
                         print("give way to")
                         self.get_the_text_bar(" give way to ")
-                        self.last_input_len = 12
+                        self.last_input_len = 13
                     elif self.button_four.collidepoint(mouse_pos):
                         print(" stop")
                         self.get_the_text_bar(" stop")
@@ -115,6 +115,9 @@ class Main():
                         print("delete")
                         self.delete_a_word()
                         self.delete_a_pathfinding_str()
+                    elif (event.key==pygame.K_ESCAPE):
+                        running = False
+                        print(running)
 
             #Do logical updates here:
 
