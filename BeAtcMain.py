@@ -170,7 +170,7 @@ class Main():
         self.it_pathfinds = self.it_pathfinds[:len(self.it_pathfinds)-2]
         print(self.it_pathfinds)
 
-    def readback(self):
+    # def readback(self):
 
     def run(self):
         running = True
