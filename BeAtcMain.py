@@ -1,12 +1,13 @@
 import pygame
 import math
+import random
+pygame.init()
 
-#CHANGE
 screen = pygame.display.set_mode((1280,720))
 clock = pygame.time.Clock()
 
 TYPES = ["Runway", "Taxiway", "Hangar"]
-class Branch():
+class Branch:
     def __init__(self, type, name):
         self.type = type
         self.name = name
@@ -21,19 +22,32 @@ class Intersection:
     def __str__(self):
         return "b1: " + self.branch1 + "   b2: " + self.branch2
 intersections = []
-import random
-pygame.init()
 
 class Plane(pygame.Rect):
-    def __init__(self, x, y, vx, vy):
-        super().__init__(x,y,50,50)
-        self.vx = vx
-        self.vy = vy
-        self.screen = pygame.display.set_mode((1200, 767))
+    TAXI_SPEED = 6
+    def __init__(self, int1):
+        super().__init__(int1.x,int1.y,50,50)
+        self.x = int1.x
+        self.y = int1.y
+        self.vx = 0
+        self.vy = 0
+        self.inter = int1
+        self.pathfinding = False
+        self.path_to_take = []
+    def set_vel(self, int2):
+        dx = int2.x - self.inter.x
+        dy = int2.y - self.inter.y
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+        if distance > 0:
+            self.vx = Plane.TAXI_SPEED * (dx / distance)
+            self.vy = Plane.TAXI_SPEED * (dy / distance)
+        else:
+            self.vx = 0
+            self.vy = 0
     def update(self):
         if self.pathfinding:
             current_index = self.path_to_take.index(self.inter)
-            if(self.intersects(self.path_to_take[current_index+1])):
+            if self.intersects(self.path_to_take[current_index+1]):
                 self.inter = self.path_to_take[current_index+1]
                 current_index = self.path_to_take.index(self.inter)
                 if current_index == len(self.path_to_take)-1:
@@ -47,19 +61,56 @@ class Plane(pygame.Rect):
         self.y += self.vy
         self.draw()
     def draw(self):
-        pygame.draw.rect(self.screen, 'white', self)
+        my_rect = pygame.Rect(self.x-25,self.y-25,50,50)
+        pygame.draw.rect(screen, 'grey', my_rect)#TODO: draw a sprite
+    def intersects(self, nextInt):
+        dx = nextInt.x - self.x
+        dy = nextInt.y - self.y
+        distSquared = dx**2 + dy**2
+        if distSquared <= 10:
+            return True
+        return False
+    def parse_string(self, input_string):
+        branchNames = input_string.split() #The user should enter a string of taxiway and runway names separated by spaces
+        print(branchNames)
+        is_valid = True
+        for name in branchNames:#loop through each name entered
+            char_is_valid = False
+            for path in branches:#check if the name entered is in the list of valid branch names
+                if name == path.name:
+                    char_is_valid = True
+            if not char_is_valid:
+                is_valid = False
+        if not is_valid:
+            return False  #Everything works up to here
+        path_to_take = []
+        path_to_take.append(self.inter)
+        for firstInt in intersections:
+            if (firstInt.branch1.name == self.inter.branch1.name and firstInt.branch2.name == branchNames[0]) or (firstInt.branch2.name == self.inter.branch1.name and firstInt.branch1.name == branchNames[0]):
+                branchNames.insert(0,self.inter.branch1.name)
+            else:
+                branchNames.insert(0,self.inter.branch2.name)
+        is_valid = False
+        for x in range(0, len(branchNames)-1):
+            for inter in intersections:
+                if (inter.branch1.name == branchNames[x] and inter.branch2.name == branchNames[x + 1]) or (inter.branch2.name == branchNames[x] and inter.branch1.name == branchNames[x + 1]):
+                    print("how many times did this trigger?")
+                    is_valid = True
+                    path_to_take.append(Intersection(inter.x, inter.y, inter.branch1, inter.branch2))
+        if is_valid:
+            print("works")
+            return path_to_take
+        return False
+    def pathfind(self, input_string):
+        self.path_to_take = self.parse_string(input_string)
+        print(self.path_to_take)
+        if not self.path_to_take:
+            print("invalid string")
+            return False
+        self.pathfinding = True
+        return True
 
-class RoadWay():
-    def __init__(self, startX, startY, endX, endY):
-        self.startX = startX
-        self.startY = startY
-        self.endX = endX
-        self.endY = endY
-        self.screen = pygame.display.set_mode((1200, 767))
-    def draw(self):
-            pygame.draw.rect(self.screen,'grey', self, 0)
-
-class Main():
+class Main:
     def __init__(self):
         self.text_bar_words = ""
         self.it_pathfinds = ""
@@ -96,43 +147,44 @@ class Main():
         self.it_readsback = self.it_readsback[:len(self.it_readsback)-self.last_input_len]
         print(self.it_readsback)
 
-    def generate_aircraft(self):
-        type = (int)(random.random()*7)
-        if type == 0:
-            number_of_nums = (int)(random.random()*3)+3
+    def generate_aircraft_ids(self):
+        type_of_reg = int(random.random() * 7)
+        if type_of_reg == 0:
+            number_of_nums = int(random.random() * 3) + 3
             if number_of_nums == 3:
-                string = "N" + str(((int)(random.random()*7))+3) + str(((int)(random.random()*10))) + str(((int)(random.random()*10)))
+                string = "N" + str((int(random.random() * 7)) + 3) + str((int(random.random() * 10))) + str((
+                                                                                                                int(random.random() * 10)))
                 print(string)
             elif number_of_nums == 4:
-                string = "N" + str(((int)(random.random() * 7)) + 3) + str(((int)(random.random() * 10))) + str(((int)(random.random() * 10))) + str(((int)(random.random() * 10)))
+                string = "N" + str((int(random.random() * 7)) + 3) + str((int(random.random() * 10))) + str((int(random.random() * 10))) + str((int(random.random() * 10)))
                 print(string)
             else:
-                string = "N" + str(((int)(random.random() * 7)) + 3) + str(((int)(random.random() * 10))) + str(((int)(random.random() * 10))) + str(((int)(random.random() *10))) + str(((int)(random.random() *10)))
+                string = "N" + str((int(random.random() * 7)) + 3) + str((int(random.random() * 10))) + str((int(random.random() * 10))) + str((int(random.random() *10))) + str((int(random.random() *10)))
                 print(string)
-        elif type == 1:
-            number_of_nums = (int)(random.random()*4)+1
+        elif type_of_reg == 1:
+            number_of_nums = int(random.random()*4)+1
             if number_of_nums == 1:
-                string = "N" + str((int)(random.random() * 9)+1) + self.generate_random_letter()
+                string = "N" + str(int(random.random() * 9)+1) + self.generate_random_letter()
                 print(string)
             elif number_of_nums == 2:
-                string = "N" + str((int)(random.random() * 9)+1) +str(((int)(random.random() * 10))) + self.generate_random_letter()
+                string = "N" + str(int(random.random() * 9)+1) +str((int(random.random() * 10))) + self.generate_random_letter()
                 print(string)
             elif number_of_nums == 3:
-                string = "N" + str((int)(random.random() * 9)+1) +str(((int)(random.random() * 10)))+str(((int)(random.random() * 10))) + self.generate_random_letter()
+                string = "N" + str(int(random.random() * 9)+1) +str((int(random.random() * 10)))+str((int(random.random() * 10))) + self.generate_random_letter()
                 print(string)
             else:
-                string = "N" + str((int)(random.random() * 9)+1)+str(((int)(random.random() * 10)))+str(((int)(random.random() * 10)))+str(((int)(random.random() * 10))) +self.generate_random_letter()
+                string = "N" + str(int(random.random() * 9)+1)+str((int(random.random() * 10)))+str((int(random.random() * 10)))+str((int(random.random() * 10))) +self.generate_random_letter()
                 print(string)
         else:
-            number_of_nums = (int)(random.random()*4)+1
+            number_of_nums = int(random.random()*4)+1
             if number_of_nums == 1:
-                string = "N"+ str((int)(random.random() * 9)+1) + self.generate_random_letter() + self.generate_random_letter()
+                string = "N"+ str(int(random.random() * 9)+1) + self.generate_random_letter() + self.generate_random_letter()
                 print(string)
             elif number_of_nums == 2:
-                string = "N"+ str((int)(random.random() * 9)+1) + str(((int)(random.random() * 10))) + self.generate_random_letter() + self.generate_random_letter()
+                string = "N"+ str(int(random.random() * 9)+1) + str((int(random.random() * 10))) + self.generate_random_letter() + self.generate_random_letter()
                 print(string)
             else:
-                string = "N"+ str((int)(random.random() * 9)+1) + str(((int)(random.random() * 10))) + str(((int)(random.random() * 10))) +  self.generate_random_letter() + self.generate_random_letter()
+                string = "N"+ str(int(random.random() * 9)+1) + str((int(random.random() * 10))) + str((int(random.random() * 10))) +  self.generate_random_letter() + self.generate_random_letter()
                 print(string)
 
     def generate_random_letter(self):
@@ -361,10 +413,8 @@ class Main():
 
             #Update graphics here:
             self.screen.fill('white') # Inspiration for UI https://www.google.com/url?sa=i&url=https%3A%2F%2Fflighttrainingcentral.com%2F2017%2F04%2Fatc-controller-sees-tech-tower%2F&psig=AOvVaw03ilNX_wzU7_oEnfBFeLcc&ust=1727441791395000&source=images&cd=vfe&opi=89978449&ved=0CBcQjhxqFwoTCNCdz6TU4IgDFQAAAAAdAAAAABAx
-            runway = (60, 60, 60)
-            taxiway = (100, 100, 100)
             self.screen.blit(self.image, (0, 0))
-            text_surface = self.font.render(self.text_bar_words, True, 'black')  # True for anti-aliasing
+            text_surface = self.font.render(self.text_bar_words, True, 'black')  # True for antialiasing
             text_rect = text_surface.get_rect(topleft=(80-40, 715))
             self.screen.blit(text_surface, text_rect)
             # self.generate_aircraft()
@@ -379,23 +429,19 @@ class Main():
                 temp_rect = (983, 460+64*i+20, 197, 50)
                 pygame.draw.rect(self.screen, 'black', temp_rect, 2)
                 if i ==0:
-                    button_one = pygame.Rect(temp_rect)
-                    text_surface = self.font.render('...taxi to...', True, 'black')  # True for anti-aliasing
+                    text_surface = self.font.render('...taxi to...', True, 'black')  # True for antialiasing
                     text_rect = text_surface.get_rect(topleft=(983+30+10, 544-64+15))
                     self.screen.blit(text_surface, text_rect)
                 elif i==1:
-                    button_two = pygame.Rect(temp_rect)
-                    text_surface = self.font.render('...hold short of...', True, 'black')  # True for anti-aliasing
+                    text_surface = self.font.render('...hold short of...', True, 'black')  # True for antialiasing
                     text_rect = text_surface.get_rect(topleft=(983+3, 608 -64+15))
                     self.screen.blit(text_surface, text_rect)
                 elif i==2:
-                    button_three = pygame.Rect(temp_rect)
-                    text_surface = self.font.render('...give way to...', True, 'black')  # True for anti-aliasing
+                    text_surface = self.font.render('...give way to...', True, 'black')  # True for antialiasing
                     text_rect = text_surface.get_rect(topleft=(983+10, 672 -64+15))
                     self.screen.blit(text_surface, text_rect)
                 else:
-                    button_four = pygame.Rect(temp_rect)
-                    text_surface = self.font.render('...stop...', True, 'black')  # True for anti-aliasing
+                    text_surface = self.font.render('...stop...', True, 'black')  # True for antialiasing
                     text_rect = text_surface.get_rect(topleft=(983+55, 736 -64+15))
                     self.screen.blit(text_surface, text_rect)
                 i += 1
