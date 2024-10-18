@@ -6,12 +6,11 @@ pygame.init()
 screen = pygame.display.set_mode((1280,720))
 clock = pygame.time.Clock()
 image = pygame.image.load("file.png")
-screen = pygame.display.set_mode((image.get_width(),image.get_height()))
 
 TYPES = ["Runway", "Taxiway", "Hangar"]
 class Branch:
-    def __init__(self, type, name):
-        self.type = type
+    def __init__(self, a_type, name):
+        self.type = a_type
         self.name = name
 branches = []
 A = Branch(TYPES[2],'A')
@@ -50,23 +49,13 @@ class Intersection:
         self.branch2 = branch2
     def __str__(self):
         return "b1: " + self.branch1.name + "   b2:" + self.branch2.name
-intersections = []
-intersections.append(Intersection(766,72,A,C))
-intersections.append(Intersection(572,307,D,C))
-intersections.append(Intersection(360,560,F,C))
-intersections.append(Intersection(406,627,E,G))
-intersections.append(Intersection(470,435,C,FBO))
-intersections.append(Intersection(744,114,C,Hangar))
-intersections.append(Intersection(312,620,C,E))
-intersections.append(Intersection(314,520,F,R1))
-intersections.append(Intersection(314,520,F,R1))
-intersections.append(Intersection(562,230,D,R1))
-intersections.append(Intersection(725,32,A,R2))
-intersections.append(Intersection(143,689,e1, R3))
-intersections.append(Intersection(862,689,e2,R4))
-intersections.append(Intersection(143,624,e1,E))
-intersections.append(Intersection(862,624,e2,E))
-intersections.append(Intersection(406,689,G,R4))
+intersections = [Intersection(766, 72, A, C), Intersection(572, 307, D, C), Intersection(360, 560, F, C),
+                 Intersection(406, 627, E, G), Intersection(470, 435, C, FBO), Intersection(744, 114, C, Hangar),
+                 Intersection(312, 620, C, E), Intersection(314, 520, F, R1), Intersection(314, 520, F, R1),
+                 Intersection(562, 230, D, R1), Intersection(725, 32, A, R2), Intersection(143, 689, e1, R3),
+                 Intersection(862, 689, e2, R4), Intersection(143, 624, e1, E), Intersection(862, 624, e2, E),
+                 Intersection(406, 689, G, R4)]
+
 
 class Plane(pygame.Rect):
     TAXI_SPEED = 2
@@ -110,18 +99,18 @@ class Plane(pygame.Rect):
     def draw(self):
         my_rect = pygame.Rect(self.x-25,self.y-25,50,50)
         pygame.draw.rect(screen, 'blue', my_rect)#TODO: draw a sprite
-    def intersects(self, nextInt):
-        dx = nextInt.x - self.x
-        dy = nextInt.y - self.y
-        distSquared = dx**2 + dy**2
-        if distSquared <= 10:
+    def intersects(self, next_int):
+        dx = next_int.x - self.x
+        dy = next_int.y - self.y
+        dist_squared = dx**2 + dy**2
+        if dist_squared <= 10:
             return True
         return False
     def parse_string(self, input_string):
-        branchNames = input_string.split() #The user should enter a string of taxiway and runway names separated by spaces
-        print(branchNames)
+        branch_names = input_string.split() #The user should enter a string of taxiway and runway names separated by spaces
+        print(branch_names)
         is_valid = True
-        for name in branchNames:#loop through each name entered
+        for name in branch_names:#loop through each name entered
             char_is_valid = False
             for path in branches:#check if the name entered is in the list of valid branch names
                 if name == path.name:
@@ -130,25 +119,24 @@ class Plane(pygame.Rect):
                 is_valid = False
         if not is_valid:
             return False  #Everything works up to here
-        path_to_take = []
-        path_to_take.append(self.inter)
+        path_to_take = [self.inter]
         for firstInt in intersections:
-            if (firstInt.branch1.name == self.inter.branch1.name and firstInt.branch2.name == branchNames[0]) or (firstInt.branch2.name == self.inter.branch1.name and firstInt.branch1.name == branchNames[0]):
-                branchNames.insert(0,self.inter.branch1.name)
-            elif (firstInt.branch1.name == self.inter.branch2.name and firstInt.branch2.name == branchNames[0]) or (firstInt.branch2.name == self.inter.branch2.name and firstInt.branch1.name == branchNames[0]):
-                branchNames.insert(0,self.inter.branch2.name)
+            if (firstInt.branch1.name == self.inter.branch1.name and firstInt.branch2.name == branch_names[0]) or (firstInt.branch2.name == self.inter.branch1.name and firstInt.branch1.name == branch_names[0]):
+                branch_names.insert(0,self.inter.branch1.name)
+            elif (firstInt.branch1.name == self.inter.branch2.name and firstInt.branch2.name == branch_names[0]) or (firstInt.branch2.name == self.inter.branch2.name and firstInt.branch1.name == branch_names[0]):
+                branch_names.insert(0,self.inter.branch2.name)
         is_valid = True
-        for b in range(0, len(branchNames)-1):
-            if branchNames[b] == "E" and branchNames[b+1] == "R3" or branchNames[b] == "R3" and branchNames[b+1] == "E":
-                branchNames.insert(b+1, e1.name)
-            if branchNames[b] == "E" and branchNames[b+1] == "R4" or branchNames[b] == "R4" and branchNames[b + 1] == "E":
-                branchNames.insert(b+1, e2.name)
+        for b in range(0, len(branch_names)-1):
+            if branch_names[b] == "E" and branch_names[b+1] == "R3" or branch_names[b] == "R3" and branch_names[b+1] == "E":
+                branch_names.insert(b+1, e1.name)
+            if branch_names[b] == "E" and branch_names[b+1] == "R4" or branch_names[b] == "R4" and branch_names[b + 1] == "E":
+                branch_names.insert(b+1, e2.name)
         is_valid = True
-        for x in range(0, len(branchNames) - 1):
+        for x in range(0, len(branch_names) - 1):
             inter_is_valid = False
             for inter in intersections:
-                if ((inter.branch1.name == branchNames[x] and inter.branch2.name == branchNames[x + 1]) or (
-                        inter.branch2.name == branchNames[x] and inter.branch1.name == branchNames[x + 1])):
+                if ((inter.branch1.name == branch_names[x] and inter.branch2.name == branch_names[x + 1]) or (
+                        inter.branch2.name == branch_names[x] and inter.branch1.name == branch_names[x + 1])):
                     path_to_take.append(Intersection(inter.x, inter.y, inter.branch1, inter.branch2))
                     inter_is_valid = True
             if not inter_is_valid:
@@ -164,16 +152,6 @@ class Plane(pygame.Rect):
             return False
         self.pathfinding = True
         return
-test = Plane(Intersection(744,114,C,Hangar))
-test.pathfind("E R4 G E C A R2")
-while True:
-    #Process player inputs:
-    #path_string = input("")
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-    #Do logical updates here:
-        return True
 
 class Main:
     def __init__(self):
@@ -252,7 +230,8 @@ class Main:
                 string = "N"+ str(int(random.random() * 9)+1) + str((int(random.random() * 10))) + str((int(random.random() * 10))) +  self.generate_random_letter() + self.generate_random_letter()
                 print(string)
 
-    def generate_random_letter(self):
+    @staticmethod
+    def generate_random_letter():
         letter = int((random.random() * 26) + 1)
         if letter == 1:
             return "A"
@@ -318,12 +297,17 @@ class Main:
         self.it_pathfinds = self.it_pathfinds[:len(self.it_pathfinds)-2]
         print(self.it_pathfinds)
 
-    # def readback(self):
+    def execute(self):
+        temp_rect = pygame.Rect(100, 100, 50, 50)
+        temp = Plane(Intersection(744, 114,C,Hangar))
+        if temp.pathfind(self.it_pathfinds):
+            print("good syntax")
+        else:
+            print("unable, check syntax you")
 
     def run(self):
         running = True
         while running:
-
             #Process player inputs:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -360,6 +344,7 @@ class Main:
                         print('FBO via ')
                         self.get_the_text_bar('FBO via ')
                         self.make_it_read_back("FBO via")
+                        self.get_the_pathfinding_str("FBO ")
                         self.last_input_len = 8
                     elif self.rnwy04_button.collidepoint(mouse_pos):
                         print('to runway 04 via ')
@@ -380,81 +365,82 @@ class Main:
                         print('to runway 27 via ')
                         self.get_the_text_bar('runway 27 via ')
                         self.make_it_read_back('runway 27 via ')
+                        self.get_the_pathfinding_str("R4 ")
                         self.last_input_len = 14
                     elif self.twaya_button.collidepoint(mouse_pos):
                         print("a")
                         self.get_the_text_bar("alpha ")
                         self.make_it_read_back('alpha ')
-                        self.get_the_pathfinding_str("a ")
+                        self.get_the_pathfinding_str("A ")
                         self.last_input_len = 6
                     elif self.twayc_button.collidepoint(mouse_pos):
                         print("c")
                         self.get_the_text_bar("charlie ")
                         self.make_it_read_back('charlie ')
-                        self.get_the_pathfinding_str("c ")
+                        self.get_the_pathfinding_str("C ")
                         self.last_input_len = 8
                         print(str)
                     elif self.twayd_button.collidepoint(mouse_pos):
                         print("d")
                         self.get_the_text_bar("delta ")
                         self.make_it_read_back('delta ')
-                        self.get_the_pathfinding_str("d ")
+                        self.get_the_pathfinding_str("D ")
                         self.last_input_len = 6
                     elif self.twaye_button.collidepoint(mouse_pos):
                         print("e")
                         self.get_the_text_bar("echo ")
                         self.make_it_read_back('echo ')
-                        self.get_the_pathfinding_str("e ")
+                        self.get_the_pathfinding_str("E ")
                         self.last_input_len = 5
                     elif self.twayf_button.collidepoint(mouse_pos):
                         print("f")
                         self.get_the_text_bar("foxtrot ")
                         self.make_it_read_back('foxtrot ')
-                        self.get_the_pathfinding_str("f ")
+                        self.get_the_pathfinding_str("F ")
                         self.last_input_len = 8
                     elif self.twayg_button.collidepoint(mouse_pos):
                         print("g")
                         self.get_the_text_bar("golf ")
                         self.make_it_read_back('golf ')
-                        self.get_the_pathfinding_str("g ")
+                        self.get_the_pathfinding_str("G ")
                         self.last_input_len = 5
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a:
                         print("a")
                         self.get_the_text_bar("alpha ")
                         self.make_it_read_back('alpha ')
-                        self.get_the_pathfinding_str("a ")
+                        self.get_the_pathfinding_str("C ")
                         self.last_input_len = 6
                     elif event.key == pygame.K_c:
                         print("c")
                         self.get_the_text_bar("charlie ")
                         self.make_it_read_back('charlie ')
-                        self.get_the_pathfinding_str("c ")
+                        self.get_the_pathfinding_str("C ")
                         self.last_input_len = 8
                         print(str)
                     elif event.key == pygame.K_d:
                         print("d")
                         self.get_the_text_bar("delta ")
                         self.make_it_read_back('delta ')
-                        self.get_the_pathfinding_str("d ")
+                        self.get_the_pathfinding_str("D ")
                         self.last_input_len = 6
                     elif event.key == pygame.K_e:
                         print("e")
                         self.get_the_text_bar("echo ")
                         self.make_it_read_back('echo ')
-                        self.get_the_pathfinding_str("e ")
+                        self.get_the_pathfinding_str("E ")
                         self.last_input_len = 5
                     elif event.key == pygame.K_f:
                         print("f")
                         self.get_the_text_bar("foxtrot ")
                         self.make_it_read_back('foxtrot ')
-                        self.get_the_pathfinding_str("f ")
+                        self.get_the_pathfinding_str("F ")
                         self.last_input_len = 8
                     elif event.key == pygame.K_g:
                         print("g")
                         self.get_the_text_bar("golf ")
                         self.make_it_read_back('golf ')
-                        self.get_the_pathfinding_str("g ")
+                        self.get_the_pathfinding_str("G ")
                         self.last_input_len = 5
                     elif event.key==pygame.K_BACKSPACE:
                         print("delete")
@@ -463,40 +449,27 @@ class Main:
                         self.delete_a_pathfinding_str()
                     elif event.key==pygame.K_ESCAPE:
                         running = False
+                        print(self.it_pathfinds)
                     elif event.key==pygame.K_t:
                         print("to")
                         self.get_the_text_bar("to ")
                     elif event.key==pygame.K_UP:
                         print("execute")
                         self.text_bar_words = ""
-                        self.readback()
+                        print(self.it_pathfinds)
+                        self.execute()
                     elif event.key==pygame.K_DOWN:
                         print("clear")
                         self.text_bar_words = ""
-
             #Do logical updates here:
-
-    #Update graphics here:
-    screen.blit(image, (0, 0))
-    test.update()
-
-  # Refresh on-screen display
-    pygame.display.flip()
-    clock.tick(60)         # wait until next frame (at 60 FPS)
-
             #Update graphics here:
             self.screen.fill('white') # Inspiration for UI https://www.google.com/url?sa=i&url=https%3A%2F%2Fflighttrainingcentral.com%2F2017%2F04%2Fatc-controller-sees-tech-tower%2F&psig=AOvVaw03ilNX_wzU7_oEnfBFeLcc&ust=1727441791395000&source=images&cd=vfe&opi=89978449&ved=0CBcQjhxqFwoTCNCdz6TU4IgDFQAAAAAdAAAAABAx
             self.screen.blit(self.image, (0, 0))
             text_surface = self.font.render(self.text_bar_words, True, 'black')  # True for antialiasing
             text_rect = text_surface.get_rect(topleft=(80-40, 715))
             self.screen.blit(text_surface, text_rect)
-            # self.generate_aircraft()
-
-            # pygame.draw.line(screen, taxiway, (660, 10), (500, 550), 23)
-            # pygame.draw.line(screen, taxiway, (660, 10), (500, 550), 23)
             pygame.draw.rect(self.screen, 'black', (75-40, 705, 900+40, 40), 2)
             pygame.draw.rect(self.screen, 'black', (973, 300+150, (1200-983), 245+50), 2)
-
             i=0
             while i < 4:
                 temp_rect = (983, 460+64*i+20, 197, 50)
@@ -520,7 +493,6 @@ class Main:
                 i += 1
             pygame.display.flip()  # Refresh on-screen display
             self.clock.tick(60)  # wait until next frame (at 60 FPS)
-
 
 main = Main()
 main.run()
