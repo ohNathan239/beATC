@@ -3,14 +3,16 @@ import math
 import random
 pygame.init()
 
-screen = pygame.display.set_mode((1280,720))
 clock = pygame.time.Clock()
 image = pygame.image.load("file.png")
+planeImg = pygame.image.load("plane.png")
+planeImg = pygame.transform.scale(planeImg,(55,61))
+screen = pygame.display.set_mode((image.get_width(),image.get_height()))
 
 TYPES = ["Runway", "Taxiway", "Hangar"]
-class Branch:
-    def __init__(self, a_type, name):
-        self.type = a_type
+class Branch():
+    def __init__(self, type, name):
+        self.type = type
         self.name = name
 branches = []
 A = Branch(TYPES[2],'A')
@@ -123,8 +125,10 @@ class Plane(pygame.Rect):
         for firstInt in intersections:
             if (firstInt.branch1.name == self.inter.branch1.name and firstInt.branch2.name == branch_names[0]) or (firstInt.branch2.name == self.inter.branch1.name and firstInt.branch1.name == branch_names[0]):
                 branch_names.insert(0,self.inter.branch1.name)
+                print("this triggered")
             elif (firstInt.branch1.name == self.inter.branch2.name and firstInt.branch2.name == branch_names[0]) or (firstInt.branch2.name == self.inter.branch2.name and firstInt.branch1.name == branch_names[0]):
                 branch_names.insert(0,self.inter.branch2.name)
+                print("or this triggered")
         is_valid = True
         for b in range(0, len(branch_names)-1):
             if branch_names[b] == "E" and branch_names[b+1] == "R3" or branch_names[b] == "R3" and branch_names[b+1] == "E":
@@ -151,8 +155,8 @@ class Plane(pygame.Rect):
             print("invalid string")
             return False
         self.pathfinding = True
-        return
-
+        return True
+temp = Plane(Intersection(744, 114,C,Hangar))
 class Main:
     def __init__(self):
         self.text_bar_words = ""
@@ -303,11 +307,12 @@ class Main:
 
     def execute(self):
         temp_rect = pygame.Rect(100, 100, 50, 50)
-        temp = Plane(Intersection(744, 114,C,Hangar))
+        print(self.it_pathfinds)
         if temp.pathfind(self.it_pathfinds):
             print("good syntax")
         else:
             print("unable, check syntax you")
+        self.it_pathfinds = ""
 
     def run(self):
         running = True
@@ -417,7 +422,7 @@ class Main:
                         print("a")
                         self.get_the_text_bar("alpha ")
                         self.make_it_read_back('alpha ')
-                        self.get_the_pathfinding_str("C ")
+                        self.get_the_pathfinding_str("A ")
                         self.last_input_len = 6
                     elif event.key == pygame.K_c:
                         print("c")
@@ -500,6 +505,7 @@ class Main:
                     text_rect = text_surface.get_rect(topleft=(983+55, 736 -64+15))
                     self.screen.blit(text_surface, text_rect)
                 i += 1
+            temp.update()
             pygame.display.flip()  # Refresh on-screen display
             self.clock.tick(60)  # wait until next frame (at 60 FPS)
 
