@@ -179,6 +179,7 @@ class Main:
         self.twaye_button = pygame.Rect(470, 590, 50, 50)
         self.twayf_button = pygame.Rect(310, 510, 40, 40)
         self.twayg_button = pygame.Rect(375, 620, 50, 50)
+        self.dest = ""
 
     def get_the_text_bar(self, text):
         self.text_bar_words += text
@@ -297,6 +298,9 @@ class Main:
         self.it_pathfinds = self.it_pathfinds[:len(self.it_pathfinds)-2]
         print(self.it_pathfinds)
 
+    def fixes_the_pathfinding_string(self):
+        self.it_pathfinds += self.dest
+
     def execute(self):
         temp_rect = pygame.Rect(100, 100, 50, 50)
         temp = Plane(Intersection(744, 114,C,Hangar))
@@ -336,36 +340,40 @@ class Main:
                         self.make_it_read_back("stop ")
                         self.last_input_len = 5
                     elif self.hanger_button.collidepoint(mouse_pos):
-                        print('hanger via')
-                        self.get_the_text_bar("hangers via ")
-                        self.make_it_read_back("hangers via ")
+                        print('hangar via')
+                        self.get_the_text_bar("hangars via ")
+                        self.make_it_read_back("hangars via ")
+                        self.dest = "Hangar"
                         self.last_input_len = 12
                     elif self.fbo_button.collidepoint(mouse_pos):
                         print('FBO via ')
                         self.get_the_text_bar('FBO via ')
                         self.make_it_read_back("FBO via")
-                        self.get_the_pathfinding_str("FBO ")
+                        self.dest = "FBO"
                         self.last_input_len = 8
                     elif self.rnwy04_button.collidepoint(mouse_pos):
                         print('to runway 04 via ')
                         self.get_the_text_bar('runway 04 via ')
                         self.make_it_read_back("runway 04 via ")
+                        self.dest = "R1"
                         self.last_input_len = 14
                     elif self.rnwy09_button.collidepoint(mouse_pos):
                         print('to runway 09 via ')
                         self.get_the_text_bar('runway 09 via ')
                         self.make_it_read_back('runway 09 via ')
+                        self.dest="R3"
                         self.last_input_len = 14
                     elif self.rnwy22_button.collidepoint(mouse_pos):
                         print('to runway 22 via ')
                         self.get_the_text_bar('runway 22 via ')
                         self.make_it_read_back('runway 22 via ')
+                        self.dest="R2"
                         self.last_input_len = 14
                     elif self.rnwy27_button.collidepoint(mouse_pos):
                         print('to runway 27 via ')
                         self.get_the_text_bar('runway 27 via ')
                         self.make_it_read_back('runway 27 via ')
-                        self.get_the_pathfinding_str("R4 ")
+                        self.dest = "R4"
                         self.last_input_len = 14
                     elif self.twaya_button.collidepoint(mouse_pos):
                         print("a")
@@ -456,6 +464,7 @@ class Main:
                     elif event.key==pygame.K_UP:
                         print("execute")
                         self.text_bar_words = ""
+                        self.fixes_the_pathfinding_string()
                         print(self.it_pathfinds)
                         self.execute()
                     elif event.key==pygame.K_DOWN:
