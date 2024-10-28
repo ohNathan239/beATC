@@ -61,7 +61,7 @@ intersections = [Intersection(766, 72, A, C), Intersection(572, 307, D, C), Inte
 
 class Plane(pygame.Rect):
     TAXI_SPEED = 2
-    def __init__(self, int1):
+    def __init__(self, int1, number):
         super().__init__(int1.x,int1.y,50,50)
         self.x = int1.x
         self.y = int1.y
@@ -72,6 +72,7 @@ class Plane(pygame.Rect):
         self.inter = int1
         self.pathfinding = False
         self.path_to_take = []
+        self.number = number
     def set_vel(self, int2):
         dx = int2.x - self.inter.x
         dy = int2.y - self.inter.y
@@ -156,7 +157,8 @@ class Plane(pygame.Rect):
             return False
         self.pathfinding = True
         return True
-temp = Plane(Intersection(744, 114,C,Hangar))
+    def get_number(self):
+        return self.number
 class Main:
     def __init__(self):
         self.text_bar_words = ""
@@ -184,57 +186,71 @@ class Main:
         self.twayf_button = pygame.Rect(310, 510, 40, 40)
         self.twayg_button = pygame.Rect(375, 620, 50, 50)
         self.dest = ""
+        self.show_notif = False
+        self.notif_starting_time = None
+        self.first_plane = True
+        self.plane_list = [Plane(Intersection(470, 435, C, FBO), "N2159H")]
+        self.plane_selected = self.plane_list[0]
+        self.make_timing_random = int(random.random()*3000)
+        self.constant_minimum_timing = 3000
+        self.plane_timer = 0
+        self.last_plane_generated = 0
 
     def get_the_text_bar(self, text):
         self.text_bar_words += text
-
     def make_it_read_back(self, text):
         self.it_readsback += text
-
     def removes_some_of_readback(self):
         self.it_readsback = self.it_readsback[:len(self.it_readsback)-self.last_input_len]
         print(self.it_readsback)
-
     def generate_aircraft_ids(self):
-        type_of_reg = int(random.random() * 7)
+        type_of_reg = int(random.random() * 10)
         if type_of_reg == 0:
             number_of_nums = int(random.random() * 3) + 3
             if number_of_nums == 3:
-                string = "N" + str((int(random.random() * 7)) + 3) + str((int(random.random() * 10))) + str((
-                                                                                                                int(random.random() * 10)))
+                string = "N" + str((int(random.random() * 7)) + 3) + str((int(random.random() * 10))) + str((int(random.random() * 10)))
                 print(string)
+                return string
             elif number_of_nums == 4:
                 string = "N" + str((int(random.random() * 7)) + 3) + str((int(random.random() * 10))) + str((int(random.random() * 10))) + str((int(random.random() * 10)))
                 print(string)
+                return string
             else:
                 string = "N" + str((int(random.random() * 7)) + 3) + str((int(random.random() * 10))) + str((int(random.random() * 10))) + str((int(random.random() *10))) + str((int(random.random() *10)))
                 print(string)
+                return string
         elif type_of_reg == 1:
             number_of_nums = int(random.random()*4)+1
             if number_of_nums == 1:
                 string = "N" + str(int(random.random() * 9)+1) + self.generate_random_letter()
                 print(string)
+                return string
             elif number_of_nums == 2:
                 string = "N" + str(int(random.random() * 9)+1) +str((int(random.random() * 10))) + self.generate_random_letter()
                 print(string)
+                return string
             elif number_of_nums == 3:
                 string = "N" + str(int(random.random() * 9)+1) +str((int(random.random() * 10)))+str((int(random.random() * 10))) + self.generate_random_letter()
                 print(string)
+                return string
             else:
                 string = "N" + str(int(random.random() * 9)+1)+str((int(random.random() * 10)))+str((int(random.random() * 10)))+str((int(random.random() * 10))) +self.generate_random_letter()
                 print(string)
+                return string
         else:
-            number_of_nums = int(random.random()*4)+1
+            number_of_nums = int(random.random()*5)+1
             if number_of_nums == 1:
                 string = "N"+ str(int(random.random() * 9)+1) + self.generate_random_letter() + self.generate_random_letter()
                 print(string)
+                return string
             elif number_of_nums == 2:
                 string = "N"+ str(int(random.random() * 9)+1) + str((int(random.random() * 10))) + self.generate_random_letter() + self.generate_random_letter()
                 print(string)
+                return string
             else:
                 string = "N"+ str(int(random.random() * 9)+1) + str((int(random.random() * 10))) + str((int(random.random() * 10))) +  self.generate_random_letter() + self.generate_random_letter()
                 print(string)
-
+                return string
     @staticmethod
     def generate_random_letter():
         letter = int((random.random() * 26) + 1)
@@ -290,29 +306,22 @@ class Main:
             return "Y"
         elif letter == 26:
             return "Z"
-
     def get_the_pathfinding_str(self, text):
          self.it_pathfinds += text
-
     def delete_a_word(self):
         self.text_bar_words = self.text_bar_words[:len(self.text_bar_words)-self.last_input_len]
-        print(self.text_bar_words)
-
     def delete_a_pathfinding_str(self):
         self.it_pathfinds = self.it_pathfinds[:len(self.it_pathfinds)-2]
-        print(self.it_pathfinds)
-
     def fixes_the_pathfinding_string(self):
         self.it_pathfinds += self.dest
-
     def execute(self):
-        temp_rect = pygame.Rect(100, 100, 50, 50)
-        print(self.it_pathfinds)
-        if temp.pathfind(self.it_pathfinds):
-            print("good syntax")
+        self.plane_selected.pathfind(self.it_pathfinds)
+        if self.plane_selected.parse_string(self.it_pathfinds):
+            print(self.it_readsback + self.plane_selected.get_number())
+            return True
         else:
-            print("unable, check syntax you")
-        self.it_pathfinds = ""
+            print("Unable")
+            return False
 
     def run(self):
         running = True
@@ -353,7 +362,7 @@ class Main:
                     elif self.fbo_button.collidepoint(mouse_pos):
                         print('FBO via ')
                         self.get_the_text_bar('FBO via ')
-                        self.make_it_read_back("FBO via")
+                        self.make_it_read_back("FBO via ")
                         self.dest = "FBO"
                         self.last_input_len = 8
                     elif self.rnwy04_button.collidepoint(mouse_pos):
@@ -417,6 +426,10 @@ class Main:
                         self.make_it_read_back('golf ')
                         self.get_the_pathfinding_str("G ")
                         self.last_input_len = 5
+                    for a in self.plane_list:
+                        if a.collidepoint(mouse_pos):
+                            self.get_the_text_bar(a.get_number() + " ")
+                            self.plane_selected = a
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a:
                         print("a")
@@ -467,15 +480,45 @@ class Main:
                         print("to")
                         self.get_the_text_bar("to ")
                     elif event.key==pygame.K_UP:
-                        print("execute")
+                        if self.text_bar_words:
+                            print("execute")
+                            self.fixes_the_pathfinding_string()
+                            print(self.it_pathfinds)
+                            self.execute()
+                            self.it_pathfinds = ""
+                            self.show_notif = True
+                            self.notif_starting_time = pygame.time.get_ticks()
+                            self.make_it_read_back(self.plane_list[0].get_number() + " ")
                         self.text_bar_words = ""
-                        self.fixes_the_pathfinding_string()
-                        print(self.it_pathfinds)
-                        self.execute()
                     elif event.key==pygame.K_DOWN:
                         print("clear")
                         self.text_bar_words = ""
+                        self.it_readsback = ""
+                        self.it_pathfinds = ""
             #Do logical updates here:
+            self.plane_timer = pygame.time.get_ticks()
+            if self.plane_timer == (self.constant_minimum_timing + self.make_timing_random):
+                location_picker = int(random.random()*10)
+                if location_picker == 0:
+                    self.plane_list.append(Plane(Intersection(470, 435, C, FBO), self.generate_aircraft_ids()))
+                elif location_picker == 1:
+                    self.plane_list.append(Plane(Intersection(744, 114, C, Hangar), self.generate_aircraft_ids()))
+                elif location_picker == 2:
+                    self.plane_list.append(Plane(Intersection(314, 520, F, R1), self.generate_aircraft_ids()))
+                elif location_picker == 3:
+                    self.plane_list.append(Plane(Intersection(562, 230, D, R1), self.generate_aircraft_ids()))
+                elif location_picker == 4:
+                    self.plane_list.append(Plane(Intersection(725, 32, A, R2), self.generate_aircraft_ids()))
+                elif location_picker == 5:
+                    self.plane_list.append(Plane(Intersection(143, 689, e1, R3), self.generate_aircraft_ids()))
+                elif location_picker == 6:
+                    self.plane_list.append(Plane(Intersection(562, 230, D, R1), self.generate_aircraft_ids()))
+                elif location_picker == 7:
+                    self.plane_list.append(Plane(Intersection(143, 689, e1, R3), self.generate_aircraft_ids()))
+                elif location_picker == 8:
+                    self.plane_list.append(Plane(Intersection(862, 689, e2, R4), self.generate_aircraft_ids()))
+                else:
+                    self.plane_list.append(Plane(Intersection(406, 689, G, R4), self.generate_aircraft_ids()))
             #Update graphics here:
             self.screen.fill('white') # Inspiration for UI https://www.google.com/url?sa=i&url=https%3A%2F%2Fflighttrainingcentral.com%2F2017%2F04%2Fatc-controller-sees-tech-tower%2F&psig=AOvVaw03ilNX_wzU7_oEnfBFeLcc&ust=1727441791395000&source=images&cd=vfe&opi=89978449&ved=0CBcQjhxqFwoTCNCdz6TU4IgDFQAAAAAdAAAAABAx
             self.screen.blit(self.image, (0, 0))
@@ -484,6 +527,15 @@ class Main:
             self.screen.blit(text_surface, text_rect)
             pygame.draw.rect(self.screen, 'black', (75-40, 705, 900+40, 40), 2)
             pygame.draw.rect(self.screen, 'black', (973, 300+150, (1200-983), 245+50), 2)
+            if self.show_notif:
+                current_time = pygame.time.get_ticks()
+                if current_time < self.notif_starting_time +3000 and self.show_notif:
+                    text_surface_two = self.font.render(self.it_readsback, True, 'black')
+                    text_rect_two = text_surface.get_rect(topleft=(20,20))
+                    self.screen.blit(text_surface_two,text_rect_two)
+                else:
+                    self.it_readsback = ""
+                    self.show_notif = False
             i=0
             while i < 4:
                 temp_rect = (983, 460+64*i+20, 197, 50)
@@ -505,7 +557,8 @@ class Main:
                     text_rect = text_surface.get_rect(topleft=(983+55, 736 -64+15))
                     self.screen.blit(text_surface, text_rect)
                 i += 1
-            temp.update()
+            for t in self.plane_list:
+                t.update()
             pygame.display.flip()  # Refresh on-screen display
             self.clock.tick(60)  # wait until next frame (at 60 FPS)
 
