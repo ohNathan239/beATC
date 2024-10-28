@@ -5,12 +5,12 @@ pygame.init()
 
 clock = pygame.time.Clock()
 image = pygame.image.load("file.png")
-planeImg = pygame.image.load("plane.png")
-planeImg = pygame.transform.scale(planeImg,(55,61))
+planeImg = pygame.image.load("Plane.png")
+planeImg = pygame.transform.scale(planeImg,(30,29))
 screen = pygame.display.set_mode((image.get_width(),image.get_height()))
 
 TYPES = ["Runway", "Taxiway", "Hangar"]
-class Branch():
+class Branch:
     def __init__(self, type, name):
         self.type = type
         self.name = name
@@ -51,17 +51,16 @@ class Intersection:
         self.branch2 = branch2
     def __str__(self):
         return "b1: " + self.branch1.name + "   b2:" + self.branch2.name
-intersections = [Intersection(766, 72, A, C), Intersection(572, 307, D, C), Intersection(360, 560, F, C),
-                 Intersection(406, 627, E, G), Intersection(470, 435, C, FBO), Intersection(744, 114, C, Hangar),
-                 Intersection(312, 620, C, E), Intersection(314, 520, F, R1), Intersection(314, 520, F, R1),
+intersections = [Intersection(762, 72, A, C), Intersection(567, 302, D, C), Intersection(352, 555, F, C),
+                 Intersection(406, 620, E, G), Intersection(470, 435, C, FBO), Intersection(735, 112, C, Hangar),
+                 Intersection(305, 618, C, E), Intersection(314, 520, F, R1),
                  Intersection(562, 230, D, R1), Intersection(725, 32, A, R2), Intersection(143, 689, e1, R3),
-                 Intersection(862, 689, e2, R4), Intersection(143, 624, e1, E), Intersection(862, 624, e2, E),
+                 Intersection(862, 689, e2, R4), Intersection(143, 620, e1, E), Intersection(862, 620, e2, E),
                  Intersection(406, 689, G, R4)]
-
 
 class Plane(pygame.Rect):
     TAXI_SPEED = 2
-    def __init__(self, int1, number):
+    def __init__(self, int1, image, number):
         super().__init__(int1.x,int1.y,50,50)
         self.x = int1.x
         self.y = int1.y
@@ -73,6 +72,7 @@ class Plane(pygame.Rect):
         self.pathfinding = False
         self.path_to_take = []
         self.number = number
+        self.deg_pos = 0
     def set_vel(self, int2):
         dx = int2.x - self.inter.x
         dy = int2.y - self.inter.y
@@ -80,35 +80,44 @@ class Plane(pygame.Rect):
         if distance > 0:
             self.vx = Plane.TAXI_SPEED * (dx / distance)
             self.vy = Plane.TAXI_SPEED * (dy / distance)
+            self.rotate(180 * math.atan2(-self.vy, self.vx) / math.pi)
         else:
             self.vx = 0
             self.vy = 0
+
+    def rotate(self, degrees):
+        # Rotate the image and update the angle
+        self.rotated_img = pygame.transform.rotate(self.base_img, degrees)
+        self.deg_pos = degrees
+
     def update(self):
         if self.pathfinding:
             current_index = self.path_to_take.index(self.inter)
-            if self.intersects(self.path_to_take[current_index+1]):
-                self.inter = self.path_to_take[current_index+1]
+            if self.intersects(self.path_to_take[current_index + 1]):
+                self.inter = self.path_to_take[current_index + 1]
                 current_index = self.path_to_take.index(self.inter)
-                if current_index == len(self.path_to_take)-1:
+                if current_index == len(self.path_to_take) - 1:
                     self.pathfinding = False
                     self.set_vel(self.path_to_take[current_index])
                     return
-            self.set_vel(self.path_to_take[current_index+1])
-        self.fx +=self.vx
+            self.set_vel(self.path_to_take[current_index + 1])
+
+        self.fx += self.vx
         self.fy += self.vy
-        self.x = int(self.fx)
-        self.y = int(self.fy)
+        self.centerx = int(self.fx)
+        self.centery = int(self.fy)
         self.draw()
+
     def draw(self):
-        my_rect = pygame.Rect(self.x-25,self.y-25,50,50)
-        pygame.draw.rect(screen, 'blue', my_rect)#TODO: draw a sprite
+        # Create a rect for the rotated image
+        rotated_rect = self.rotated_img.get_rect(center=(self.fx, self.fy))
+        screen.blit(self.rotated_img, rotated_rect.topleft)
+
     def intersects(self, next_int):
-        dx = next_int.x - self.x
-        dy = next_int.y - self.y
-        dist_squared = dx**2 + dy**2
-        if dist_squared <= 10:
-            return True
-        return False
+        dx = next_int.x - self.centerx
+        dy = next_int.y - self.centery
+        dist_squared = dx ** 2 + dy ** 2
+        return dist_squared <= 10
     def parse_string(self, input_string):
         branch_names = input_string.split() #The user should enter a string of taxiway and runway names separated by spaces
         print(branch_names)
@@ -561,6 +570,5 @@ class Main:
                 t.update()
             pygame.display.flip()  # Refresh on-screen display
             self.clock.tick(60)  # wait until next frame (at 60 FPS)
-
 main = Main()
 main.run()
