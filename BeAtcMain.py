@@ -59,7 +59,7 @@ intersections = [Intersection(762, 72, A, C), Intersection(567, 302, D, C), Inte
                  Intersection(406, 689, G, R4)]
 
 class Plane(pygame.Rect):
-    TAXI_SPEED = 2
+    TAXI_SPEED = .85
     def __init__(self, int1, image, number):
         super().__init__(int1.x,int1.y,50,50)
         self.x = int1.x
@@ -73,6 +73,8 @@ class Plane(pygame.Rect):
         self.path_to_take = []
         self.number = number
         self.deg_pos = 0
+        self.base_img = image
+        self.rotated_img = image
     def set_vel(self, int2):
         dx = int2.x - self.inter.x
         dy = int2.y - self.inter.y
@@ -184,10 +186,10 @@ class Main:
         self.last_input_len = 0
         self.hanger_button = pygame.Rect(880, 350, 175, 50)
         self.fbo_button = pygame.Rect(560, 495, 75, 50)
-        self.rnwy09_button = pygame.Rect(100, 650, 100, 50)
-        self.rnwy27_button = pygame.Rect(825, 650, 100, 50)
-        self.rnwy04_button = pygame.Rect(255, 510, 50, 50)
-        self.rnwy22_button = pygame.Rect(715, 0, 50, 30)
+        self.rnwy09_button = pygame.Rect(100, 650, 25, 50)
+        self.rnwy27_button = pygame.Rect(860, 650, 40, 50)
+        self.rnwy04_button = pygame.Rect(275, 520, 25, 30)
+        self.rnwy22_button = pygame.Rect(730, 0, 30, 30)
         self.twaya_button = pygame.Rect(710, 28, 50, 50)
         self.twayc_button = pygame.Rect(580, 235, 50, 50)
         self.twayd_button = pygame.Rect(530, 240, 50, 50)
@@ -198,11 +200,9 @@ class Main:
         self.show_notif = False
         self.notif_starting_time = None
         self.first_plane = True
-        self.plane_list = [Plane(Intersection(470, 435, C, FBO), "N2159H")]
+        self.plane_list = [Plane(Intersection(470, 435, C, FBO), planeImg, "N2159H")]
         self.plane_selected = self.plane_list[0]
-        self.make_timing_random = int(random.random()*3000)
-        self.constant_minimum_timing = 3000
-        self.plane_timer = 0
+        self.make_timing_random = int(random.random()*15000)
         self.last_plane_generated = 0
 
     def get_the_text_bar(self, text):
@@ -489,45 +489,63 @@ class Main:
                         print("to")
                         self.get_the_text_bar("to ")
                     elif event.key==pygame.K_UP:
-                        if self.text_bar_words:
+                        if self.text_bar_words is not None:
                             print("execute")
                             self.fixes_the_pathfinding_string()
-                            print(self.it_pathfinds)
-                            self.execute()
-                            self.it_pathfinds = ""
-                            self.show_notif = True
-                            self.notif_starting_time = pygame.time.get_ticks()
-                            self.make_it_read_back(self.plane_list[0].get_number() + " ")
+                            if self.plane_selected.pathfind(self.it_pathfinds):
+                                print(self.it_pathfinds)
+                                self.execute()
+                                self.it_pathfinds = ""
+                                self.show_notif = True
+                                self.notif_starting_time = pygame.time.get_ticks()
+                                self.make_it_read_back(self.plane_selected.get_number() + " ")
+                            else:
+                                self.it_readsback = ""
+                                self.show_notif = True
+                                self.notif_starting_time = pygame.time.get_ticks()
+                                self.make_it_read_back("Unable, " + self.plane_selected.get_number())
                         self.text_bar_words = ""
+                        self.dest = ""
                     elif event.key==pygame.K_DOWN:
                         print("clear")
                         self.text_bar_words = ""
                         self.it_readsback = ""
                         self.it_pathfinds = ""
             #Do logical updates here:
-            self.plane_timer = pygame.time.get_ticks()
-            if self.plane_timer == (self.constant_minimum_timing + self.make_timing_random):
+            general_timer = pygame.time.get_ticks()
+            if general_timer > (5000 + self.make_timing_random + self.last_plane_generated):
                 location_picker = int(random.random()*10)
                 if location_picker == 0:
-                    self.plane_list.append(Plane(Intersection(470, 435, C, FBO), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(470, 435, C, FBO), planeImg, self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 elif location_picker == 1:
-                    self.plane_list.append(Plane(Intersection(744, 114, C, Hangar), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(735, 112, C, Hangar), planeImg, self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 elif location_picker == 2:
-                    self.plane_list.append(Plane(Intersection(314, 520, F, R1), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(314, 520, F, R1), planeImg,self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 elif location_picker == 3:
-                    self.plane_list.append(Plane(Intersection(562, 230, D, R1), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(562, 230, D, R1), planeImg,self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 elif location_picker == 4:
-                    self.plane_list.append(Plane(Intersection(725, 32, A, R2), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(725, 32, A, R2), planeImg,self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 elif location_picker == 5:
-                    self.plane_list.append(Plane(Intersection(143, 689, e1, R3), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 elif location_picker == 6:
-                    self.plane_list.append(Plane(Intersection(562, 230, D, R1), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(562, 230, D, R1), planeImg,self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 elif location_picker == 7:
-                    self.plane_list.append(Plane(Intersection(143, 689, e1, R3), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 elif location_picker == 8:
-                    self.plane_list.append(Plane(Intersection(862, 689, e2, R4), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(862, 689, e2, R4), planeImg,self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
                 else:
-                    self.plane_list.append(Plane(Intersection(406, 689, G, R4), self.generate_aircraft_ids()))
+                    self.plane_list.append(Plane(Intersection(406, 689, G, R4),planeImg,self.generate_aircraft_ids()))
+                    self.last_plane_generated = general_timer
+                self.make_timing_random = int(random.random() * 3000)
             #Update graphics here:
             self.screen.fill('white') # Inspiration for UI https://www.google.com/url?sa=i&url=https%3A%2F%2Fflighttrainingcentral.com%2F2017%2F04%2Fatc-controller-sees-tech-tower%2F&psig=AOvVaw03ilNX_wzU7_oEnfBFeLcc&ust=1727441791395000&source=images&cd=vfe&opi=89978449&ved=0CBcQjhxqFwoTCNCdz6TU4IgDFQAAAAAdAAAAABAx
             self.screen.blit(self.image, (0, 0))
