@@ -59,7 +59,7 @@ intersections = [Intersection(762, 72, A, C), Intersection(567, 302, D, C), Inte
                  Intersection(406, 689, G, R4)]
 
 class Plane(pygame.Rect):
-    TAXI_SPEED = .385
+    TAXI_SPEED = .85
     def __init__(self, int1, image, number):
         super().__init__(int1.x,int1.y,50,50)
         self.base_img = image
@@ -521,7 +521,7 @@ class Main:
                         self.it_pathfinds = ""
             #Do logical updates here:
             general_timer = pygame.time.get_ticks()
-            if general_timer > (5000 + self.make_timing_random + self.last_plane_generated):
+            if general_timer > (7500 + self.make_timing_random + self.last_plane_generated):
                 location_picker = int(random.random()*10)
                 if location_picker == 0:
                     self.plane_list.append(Plane(Intersection(470, 435, C, FBO), planeImg, self.generate_aircraft_ids()))
@@ -535,9 +535,6 @@ class Main:
                 elif location_picker == 3:
                     self.plane_list.append(Plane(Intersection(562, 230, D, R1), planeImg,self.generate_aircraft_ids()))
                     self.last_plane_generated = general_timer
-                elif location_picker == 4:
-                    self.plane_list.append(Plane(Intersection(725, 32, A, R2), planeImg,self.generate_aircraft_ids()))
-                    self.last_plane_generated = general_timer
                 elif location_picker == 5:
                     self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.generate_aircraft_ids()))
                     self.last_plane_generated = general_timer
@@ -548,9 +545,6 @@ class Main:
                     self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.generate_aircraft_ids()))
                     self.last_plane_generated = general_timer
                 elif location_picker == 8:
-                    self.plane_list.append(Plane(Intersection(862, 689, e2, R4), planeImg,self.generate_aircraft_ids()))
-                    self.last_plane_generated = general_timer
-                else:
                     self.plane_list.append(Plane(Intersection(406, 689, G, R4),planeImg,self.generate_aircraft_ids()))
                     self.last_plane_generated = general_timer
                 self.make_timing_random = int(random.random() * 3000)
