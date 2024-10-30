@@ -59,7 +59,7 @@ intersections = [Intersection(762, 72, A, C), Intersection(567, 302, D, C), Inte
                  Intersection(406, 689, G, R4)]
 
 class Plane(pygame.Rect):
-    TAXI_SPEED = .85
+    TAXI_SPEED = .385
     def __init__(self, int1, image, number):
         super().__init__(int1.x,int1.y,50,50)
         self.base_img = image
