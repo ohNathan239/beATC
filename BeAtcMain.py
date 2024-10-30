@@ -62,19 +62,20 @@ class Plane(pygame.Rect):
     TAXI_SPEED = .85
     def __init__(self, int1, image, number):
         super().__init__(int1.x,int1.y,50,50)
+        self.base_img = image
+        self.rotated_img = image
         self.x = int1.x
         self.y = int1.y
         self.fx = float(self.x)
         self.fy = float(self.y)
-        self.vx = 0
-        self.vy = 0
         self.inter = int1
         self.pathfinding = False
         self.path_to_take = []
-        self.number = number
         self.deg_pos = 0
-        self.base_img = image
-        self.rotated_img = image
+        self.vx = 0
+        self.vy = 0
+        self.number = number
+
     def set_vel(self, int2):
         dx = int2.x - self.inter.x
         dy = int2.y - self.inter.y
@@ -170,6 +171,7 @@ class Plane(pygame.Rect):
         return True
     def get_number(self):
         return self.number
+
 class Main:
     def __init__(self):
         self.text_bar_words = ""
@@ -204,6 +206,8 @@ class Main:
         self.plane_selected = self.plane_list[0]
         self.make_timing_random = int(random.random()*15000)
         self.last_plane_generated = 0
+        self.constant_minimum_timing = 3000
+        self.plane_timer = 0
 
     def get_the_text_bar(self, text):
         self.text_bar_words += text
@@ -315,10 +319,14 @@ class Main:
             return "Y"
         elif letter == 26:
             return "Z"
+
     def get_the_pathfinding_str(self, text):
          self.it_pathfinds += text
+
     def delete_a_word(self):
         self.text_bar_words = self.text_bar_words[:len(self.text_bar_words)-self.last_input_len]
+        print(self.text_bar_words)
+
     def delete_a_pathfinding_str(self):
         self.it_pathfinds = self.it_pathfinds[:len(self.it_pathfinds)-2]
     def fixes_the_pathfinding_string(self):
