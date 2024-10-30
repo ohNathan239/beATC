@@ -521,6 +521,7 @@ class Main:
                         self.it_pathfinds = ""
             #Do logical updates here:
             general_timer = pygame.time.get_ticks()
+            # change
             if general_timer > (7500 + self.make_timing_random + self.last_plane_generated):
                 location_picker = int(random.random()*10)
                 if location_picker == 0:
