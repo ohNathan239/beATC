@@ -60,7 +60,7 @@ intersections = [Intersection(762, 72, A, C), Intersection(567, 302, D, C), Inte
 
 class Plane(pygame.Rect):
     TAXI_SPEED = .85
-    def __init__(self, int1, image, number):
+    def __init__(self, int1, image, number, placed_to_go, intersection_to_go):
         super().__init__(int1.x,int1.y,50,50)
         self.base_img = image
         self.rotated_img = image
@@ -75,6 +75,8 @@ class Plane(pygame.Rect):
         self.vx = 0
         self.vy = 0
         self.number = number
+        self.place_to_go = placed_to_go
+        self.intersection_to_go = intersection_to_go
 
     def set_vel(self, int2):
         dx = int2.x - self.inter.x
@@ -171,9 +173,15 @@ class Plane(pygame.Rect):
         return True
     def get_number(self):
         return self.number
+    def get_place_to_go(self):
+        return self.place_to_go
+    def get_intersection_to_go(self):
+        return self.intersection_to_go
 
 class Main:
     def __init__(self):
+        self.temp_name = None
+        self.show_notif2 = None
         self.text_bar_words = ""
         self.it_pathfinds = ""
         self.it_readsback = ""
@@ -202,12 +210,19 @@ class Main:
         self.show_notif = False
         self.notif_starting_time = None
         self.first_plane = True
-        self.plane_list = [Plane(Intersection(470, 435, C, FBO), planeImg, "N2159H")]
+        self.plane_list = [Plane(Intersection(470, 435, C, FBO), planeImg,  "N2159H", "Departure", Intersection(862, 689, e2, R4))]
         self.plane_selected = self.plane_list[0]
         self.make_timing_random = int(random.random()*15000)
         self.last_plane_generated = 0
         self.constant_minimum_timing = 3000
         self.plane_timer = 0
+        self.temp_plane = ""
+        self.last_at_rnwy_27g = 0
+        self.last_at_rnwy_27e = 0
+        self.last_at_FBO = 0
+        self.last_at_hangar = 0
+        self.last_at_rnwy_22d = 0
+        self.last_at_rnwy_22f = 0
 
     def get_the_text_bar(self, text):
         self.text_bar_words += text
@@ -524,30 +539,106 @@ class Main:
             # change
             if general_timer > (7500 + self.make_timing_random + self.last_plane_generated):
                 location_picker = int(random.random()*10)
-                if location_picker == 0:
-                    self.plane_list.append(Plane(Intersection(470, 435, C, FBO), planeImg, self.generate_aircraft_ids()))
+                if location_picker == 0 and self.last_at_FBO + 15000 < pygame.time.get_ticks() :
+                    self.temp_name = self.generate_aircraft_ids()
+                    self.temp_plane = Plane(Intersection(470, 435, C, FBO), planeImg, self.temp_name, "runway 27", Intersection(862, 689, e2, R4))
+                    self.plane_list.append(Plane(Intersection(470, 435, C, FBO), planeImg, self.temp_name, "runway 27",Intersection(862, 689, e2, R4)))
                     self.last_plane_generated = general_timer
+                    self.show_notif2 = True
+                    self.notif_starting_time = pygame.time.get_ticks()
+                    self.last_at_FBO = pygame.time.get_ticks()
                 elif location_picker == 1:
-                    self.plane_list.append(Plane(Intersection(735, 112, C, Hangar), planeImg, self.generate_aircraft_ids()))
+                    self.temp_name = self.generate_aircraft_ids()
+                    self.temp_plane = Plane(Intersection(735, 112, C, Hangar), planeImg, self.temp_name, "runway 27", Intersection(862, 689, e2, R4))
+                    self.plane_list.append(Plane(Intersection(735, 112, C, Hangar), planeImg, self.temp_name, "runway 27",Intersection(862, 689, e2, R4)))
                     self.last_plane_generated = general_timer
+                    self.show_notif2 = True
+                    self.notif_starting_time = pygame.time.get_ticks()
                 elif location_picker == 2:
-                    self.plane_list.append(Plane(Intersection(314, 520, F, R1), planeImg,self.generate_aircraft_ids()))
-                    self.last_plane_generated = general_timer
+                    destination_picker = (int(random.random()*4))
+                    if self.last_at_rnwy_22f + 15000 < pygame.time.get_ticks():
+                        if destination_picker == 0:
+                            self.temp_name = self.generate_aircraft_ids()
+                            self.temp_plane = Plane(Intersection(314, 520, F, R1), planeImg, self.temp_name, "hangars", Intersection(735, 112, C, Hangar))
+                            self.plane_list.append(Plane(Intersection(314, 520, F, R1), planeImg, self.temp_name, "hangars",Intersection(735, 112, C, Hangar)))
+                            self.last_plane_generated = general_timer
+                            self.show_notif2 = True
+                            self.notif_starting_time = pygame.time.get_ticks()
+                            self.last_at_rnwy_22f = pygame.time.get_ticks()
+                        else:
+                            self.temp_name = self.generate_aircraft_ids()
+                            self.temp_plane = Plane(Intersection(314, 520, F, R1), planeImg,self.temp_name, "FBO", Intersection(470, 435, C, FBO))
+                            self.plane_list.append(Plane(Intersection(314, 520, F, R1), planeImg,self.temp_name, "FBO", Intersection(470, 435, C, FBO)))
+                            self.last_plane_generated = general_timer
+                            self.show_notif2 = True
+                            self.notif_starting_time = pygame.time.get_ticks()
+                        self.last_at_rnwy_22f = pygame.time.get_ticks()
                 elif location_picker == 3:
-                    self.plane_list.append(Plane(Intersection(562, 230, D, R1), planeImg,self.generate_aircraft_ids()))
-                    self.last_plane_generated = general_timer
+                    destination_picker = (int(random.random()*4))
+                    if destination_picker == 0:
+                        self.temp_name = self.generate_aircraft_ids()
+                        self.temp_plane = Plane(Intersection(562, 230, D, R1), planeImg, self.temp_name, "hangars", Intersection(735, 112, C, Hangar))
+                        self.plane_list.append(Plane(Intersection(562, 230, D, R1), planeImg, self.temp_name, "hangars",Intersection(735, 112, C, Hangar)))
+                        self.last_plane_generated = general_timer
+                        self.show_notif2 = True
+                        self.notif_starting_time = pygame.time.get_ticks()
+                    else:
+                        self.temp_name = self.generate_aircraft_ids()
+                        self.temp_plane = Plane(Intersection(562, 230, D, R1), planeImg, self.temp_name, "FBO",Intersection(470, 435, C, FBO))
+                        self.plane_list.append(Plane(Intersection(562, 230, D, R1), planeImg, self.temp_name, "FBO", Intersection(470, 435, C, FBO)))
+                        self.last_plane_generated = general_timer
+                        self.show_notif2 = True
+                        self.notif_starting_time = pygame.time.get_ticks()
                 elif location_picker == 5:
-                    self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.generate_aircraft_ids()))
-                    self.last_plane_generated = general_timer
-                elif location_picker == 6:
-                    self.plane_list.append(Plane(Intersection(562, 230, D, R1), planeImg,self.generate_aircraft_ids()))
-                    self.last_plane_generated = general_timer
+                    destination_picker = (int(random.random()*4))
+                    if self.last_at_rnwy_27e + 15000 < pygame.time.get_ticks():
+                        if destination_picker == 0:
+                            self.temp_name = self.generate_aircraft_ids()
+                            self.temp_plane = Plane(Intersection(143, 689, e1, R3), planeImg,self.temp_name, "hangars", Intersection(735, 112, C, Hangar))
+                            self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.temp_name, "hangars", Intersection(735, 112, C, Hangar)))
+                            self.last_plane_generated = general_timer
+                            self.show_notif2 = True
+                            self.notif_starting_time = pygame.time.get_ticks()
+                        else:
+                            self.temp_name = self.generate_aircraft_ids()
+                            self.temp_plane = Plane(Intersection(143, 689, e1, R3), planeImg,self.temp_name, "FBO",Intersection(470, 435, C, FBO))
+                            self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.temp_name, "FBO", Intersection(470, 435, C, FBO)))
+                            self.last_plane_generated = general_timer
+                            self.show_notif2 = True
+                            self.notif_starting_time = pygame.time.get_ticks()
+                    self.last_at_rnwy_27e = pygame.time.get_ticks()
                 elif location_picker == 7:
-                    self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.generate_aircraft_ids()))
-                    self.last_plane_generated = general_timer
+                    destination_picker = (int(random.random()*4))
+                    if destination_picker == 0:
+                        self.temp_name = self.generate_aircraft_ids()
+                        self.temp_plane = Plane(Intersection(143, 689, e1, R3), planeImg, self.temp_name, "hangars", Intersection(735, 112, C, Hangar))
+                        self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg, self.temp_name, "hangars", Intersection(735, 112, C, Hangar)))
+                        self.last_plane_generated = general_timer
+                        self.show_notif2 = True
+                        self.notif_starting_time = pygame.time.get_ticks()
+                    else:
+                        self.temp_name = self.generate_aircraft_ids()
+                        self.temp_plane = Plane(Intersection(143, 689, e1, R3), planeImg, self.temp_name, "FBO", Intersection(470, 435, C, FBO))
+                        self.plane_list.append(Plane(Intersection(143, 689, e1, R3), planeImg,self.temp_name, "FBO", Intersection(470, 435, C, FBO)))
+                        self.last_plane_generated = general_timer
+                        self.show_notif2 = True
+                        self.notif_starting_time = pygame.time.get_ticks()
                 elif location_picker == 8:
-                    self.plane_list.append(Plane(Intersection(406, 689, G, R4),planeImg,self.generate_aircraft_ids()))
-                    self.last_plane_generated = general_timer
+                    destination_picker = (int(random.random()*4))
+                    if destination_picker == 0:
+                        self.temp_name = self.generate_aircraft_ids()
+                        self.temp_plane = Plane(Intersection(406, 689, G, R4),planeImg,self.temp_name, 'hangars', Intersection(735, 112, C, Hangar))
+                        self.plane_list.append(Plane(Intersection(406, 689, G, R4),planeImg,self.temp_name, 'hangars', Intersection(735, 112, C, Hangar)))
+                        self.last_plane_generated = general_timer
+                        self.show_notif2 = True
+                        self.notif_starting_time = pygame.time.get_ticks()
+                    else:
+                        self.temp_name = self.generate_aircraft_ids()
+                        self.temp_plane = Plane(Intersection(406, 689, G, R4),planeImg,self.temp_name, 'FBO', Intersection(470, 435, C, FBO))
+                        self.plane_list.append(Plane(Intersection(406, 689, G, R4),planeImg,self.temp_name, 'FBO', Intersection(470, 435, C, FBO)))
+                        self.last_plane_generated = general_timer
+                        self.show_notif2 = True
+                        self.notif_starting_time = pygame.time.get_ticks()
                 self.make_timing_random = int(random.random() * 3000)
             #Update graphics here:
             self.screen.fill('white') # Inspiration for UI https://www.google.com/url?sa=i&url=https%3A%2F%2Fflighttrainingcentral.com%2F2017%2F04%2Fatc-controller-sees-tech-tower%2F&psig=AOvVaw03ilNX_wzU7_oEnfBFeLcc&ust=1727441791395000&source=images&cd=vfe&opi=89978449&ved=0CBcQjhxqFwoTCNCdz6TU4IgDFQAAAAAdAAAAABAx
@@ -566,6 +657,17 @@ class Main:
                 else:
                     self.it_readsback = ""
                     self.show_notif = False
+            if self.show_notif2:
+                current_time2 = pygame.time.get_ticks()
+                if current_time2 < self.notif_starting_time + 3000 and self.show_notif2:
+                    text_surface_two = self.font.render(self.temp_plane.get_number() + " requesting taxi to " + self.temp_plane.get_place_to_go(), True, 'black')
+                    text_rect_two = text_surface.get_rect(topleft=(20, 60))
+                    self.screen.blit(text_surface_two, text_rect_two)
+                else:
+                    self.temp_name = ""
+                    self.temp_name = ""
+                    self.temp_plane = None
+                    self.show_notif2 = False
             i=0
             while i < 4:
                 temp_rect = (983, 460+64*i+20, 197, 50)
@@ -587,6 +689,9 @@ class Main:
                     text_rect = text_surface.get_rect(topleft=(983+55, 736 -64+15))
                     self.screen.blit(text_surface, text_rect)
                 i += 1
+            for t in self.plane_list:
+                if t.inter == t.get_intersection_to_go():
+                    self.plane_list.remove(t)
             for t in self.plane_list:
                 t.update()
             pygame.display.flip()  # Refresh on-screen display
